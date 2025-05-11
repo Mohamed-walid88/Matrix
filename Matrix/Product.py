@@ -1,12 +1,28 @@
-def product(a, b):
-    if len(a[0]) != len(b):
-        return "Error: Matrix dimensions are not compatible for multiplication."
+from sympy import Matrix, symbols
 
-    result = [[0 for _ in range(len(b[0]))] for _ in range(len(a))]
 
-    for i in range(len(a)):
-        for j in range(len(b[0])):
-            for k in range(len(a[0])):
-                result[i][j] += a[i][k] * b[k][j]
+class Product:
+    def __init__(self, matrix1, matrix2, substitutions=None):
+        self.substitutions = substitutions or {}
+        self.symbolic_matrix_a = self._apply_substitution(matrix1)
+        self.symbolic_matrix_b = self._apply_substitution(matrix2)
+        
+    def _apply_substitution(self, matrix):
+        resolved = {symbols(k) if isinstance(k, str) else k: v for k, v in self.substitutions.items()}
+        return Matrix(matrix).subs(resolved)
+        
+    def evaluate(self):
+        rows_A, cols_A = self.symbolic_matrix_a.shape
+        rows_B, cols_B = self.symbolic_matrix_b.shape
 
-    return result
+        if cols_A != rows_B:
+            raise ValueError("Matrix dimensions are not compatible for multiplication")
+    
+        result = [[0 for _ in range(cols_B)] for _ in range(rows_A)]
+    
+        for i in range(rows_A):
+            for j in range(cols_B):
+                for k in range(cols_A):
+                    result[i][j] += self.symbolic_matrix_a[i, k] * self.symbolic_matrix_b[k, j]
+    
+        return Matrix(result)
