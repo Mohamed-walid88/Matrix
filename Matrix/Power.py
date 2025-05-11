@@ -1,20 +1,36 @@
-import Product, Identity
+import Identity
+from sympy import Matrix, symbols
+from Product import Product
 
-def Power(A,n):
-    if len(A) != len(A[0]):
-        return "Error: Matrix is not square"
-    if n < 1 :
-        return "Error: n must be a positive integer"
 
-    result = Identity.Identity(len(A))
-    base = A
+class Power:
+    def __init__(self, matrix, n, substitutions=None):
+        self.matrix = matrix
+        self.substitutions = substitutions or {}
+        self.n = n
+        self.symbolic_matrix = self._apply_substitution(self.matrix)
 
-    while n > 0:
-        if n & 1 == 1:
-            result = Product.product(result,base)
-        base = Product.product(base,base)
-        n >>= 1
+    def _apply_substitution(self, matrix):
+        resolved = {symbols(k) if isinstance(k, str) else k: v for k, v in self.substitutions.items()}
+        return Matrix(matrix).subs(resolved)
 
-    return result
+    def power(self):
+        rows, cols = self.symbolic_matrix.shape
+        if rows != cols:
+            raise ValueError("Error: Matrix is not square")
+        if self.n == 0:
+            return Identity.Identity(rows)
+        if self.n < 1 or not isinstance(self.n, int) :
+            raise ValueError("Error: n must be a positive integer")
 
-print(Power([[1,2],[3,4]],2))
+        result = Identity.Identity(rows)
+        base = self.symbolic_matrix
+
+        exp = self.n
+        while exp > 0:
+            if exp & 1 == 1:
+                result = Product(result, base).evaluate()
+            base = Product(base, base).evaluate()
+            exp >>= 1
+
+        return result
