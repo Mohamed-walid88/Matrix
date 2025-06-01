@@ -1,21 +1,13 @@
 import sympy
-from sympy import Matrix, NonSquareMatrixError, Symbol, symbols, zeros
+from sympy import NonSquareMatrixError, Symbol, zeros, Matrix
+from MatrixBase import MatrixBase
 
 
-class Charomatic_Polynomial:
+class CharomaticPolynomial(MatrixBase):
     def __init__(self, matrix, substitutions=None):
-        self.original = sympy.Matrix(matrix)
-        self.substitutions = substitutions or {}
-        self.symbolic_matrix = self._apply_substitutions()
+        super().__init__(matrix, substitutions)
         self.one = sympy.Integer(1)
         self._new = lambda coeffs: Matrix(coeffs)
-        self._row_swaps = 0
-
-
-    def _apply_substitutions(self):
-        resolved = {k if isinstance(k, str) else k: v
-                    for k, v in self.substitutions.items()}
-        return self.original.subs(resolved)
 
     def berkowitz(self):
         if not self.symbolic_matrix:
