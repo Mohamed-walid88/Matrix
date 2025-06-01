@@ -1,7 +1,9 @@
-# This is a class to get the transpose of a matrix
-# It could be used for a numerical matrix, a symbolic one, or a mix of them
-# Has two parameters, the first one is the original matrix, the other is a dictionary of the symbols you want to substitute 
-# You could substitute the symbols with numbers or keep them as symbols
+# This is a method to get the transpose of a matrix
+# It has two methods, one for the normal matrices that work with numbers called transpose
+# and another for the matrices that have symbols (i.e., x, y, z) called transpose_with_symbols
+# The second one takes the original matrix and a dictionary
+# The dictionary should contain a string that represents the symbol and the corresponding value for this symbol
+# The corresponding value could be the same symbol (or any other symbol), but in sympy
 # EX :
 #       [[x, 2, 3], [4, y, 6]]
 #       dic is {"x": x, "y": y}
@@ -10,17 +12,12 @@
 
 
 
-from sympy import Matrix, symbols
 
-class Transpose:
+from MatrixBase import MatrixBase
+
+class Transpose(MatrixBase):
     def __init__(self, matrix, substitutions=None):
-        self.original = matrix
-        self.substitutions = substitutions or {}
-        self.symbolic_matrix = self._apply_substitution()
-
-    def _apply_substitution(self):
-        resolved = {self.substitutions[k] if isinstance(k, str) else k: v for k, v in self.substitutions.items()}
-        return Matrix(self.original).subs(resolved)
+        super().__init__(matrix, substitutions)
 
     def transpose(self):
         transposed_A = []
