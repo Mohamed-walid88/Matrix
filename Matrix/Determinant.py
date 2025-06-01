@@ -1,23 +1,14 @@
-import sympy
-from sympy import Matrix, symbols, Symbol
+from CharomaticPolynomial import CharomaticPolynomial
 from Identity import Identity
-import Charomatic_Polynomial
-from Charomatic_Polynomial import Charomatic_Polynomial
+from MatrixBase import MatrixBase
 
 
-class Determinant:
+class Determinant(MatrixBase):
     def __init__(self, matrix, substitutions=None):
-        self.original = sympy.Matrix(matrix)
-        self.substitutions = substitutions or {}
-        self.symbolic_matrix = self._apply_substitutions()
+        super().__init__(matrix, substitutions)
         self._row_swaps = 0
 
-    def _apply_substitutions(self):
-        resolved = {k if isinstance(k, str) else k: v
-                    for k, v in self.substitutions.items()}
-        return self.original.subs(resolved)
-
-    def LU_decomposition(self):
+    def _LU_decomposition(self):
         A = self.symbolic_matrix
         n = A.rows
         L = Identity(n)
@@ -59,10 +50,10 @@ class Determinant:
                 continue
             minor = A.minor_submatrix(i, j_)
             sign = (-1) ** (i + j_)
-            det += sign * elem * self.Laplace_expansion(minor)
+            det += sign * elem * self._Laplace_expansion(minor)
         return det
 
-    def Laplace_expansion(self, A):
+    def _Laplace_expansion(self, A):
         n = A.shape[0]
         if n == 1:
             return A[0, 0]
@@ -86,7 +77,7 @@ class Determinant:
 
         return self._expand_along_line(A, index, use_row)
 
-    def Bareiss_algorithm(self):
+    def _Bareiss_algorithm(self):
         A = self.symbolic_matrix.copy()
         n = A.rows
         det = 1
@@ -103,7 +94,7 @@ class Determinant:
                     A.row_swap(k, swap_row)
                     det *= -1
                 else:
-                    return self.Berkowitz_det()
+                    return self._Berkowitz_det()
 
             for i in range(k + 1, n):
                 for j in range(k + 1, n):
@@ -113,31 +104,17 @@ class Determinant:
 
         return det * A[n - 1, n - 1].simplify()
 
-    def Berkowitz_det(self):
-        poly = Charomatic_Polynomial(self.symbolic_matrix)
+    def _Berkowitz_det(self):
+        poly = CharomaticPolynomial(self.symbolic_matrix)
         p = poly.berkowitz()
 
         return (-1)**(self.symbolic_matrix.shape[0]) * p.subs('λ', 0)
 
     def getDet(self):
         n = self.symbolic_matrix.shape[0]
-        if self.substitutions is not None:
-            symbolic, numeric = False, False
-            for i in range(n):
-                for j in range(n):
-                    if self.symbolic_matrix[i, j].is_Symbol:
-                        symbolic = True
-                    elif self.symbolic_matrix[i, j].is_number:
-                        numeric = True
-
-                    if symbolic and numeric:
-                        break
-
-            if symbolic and not numeric and n <= 4:
-                return self.Laplace_expansion(self.symbolic_matrix)
-            elif numeric and not symbolic:
-                return self.LU_decomposition()
-            else:
-                return self.Bareiss_algorithm()
+        if n <= 4 and self.is_symbolic() and not self.is_numeric():
+            return self._Laplace_expansion(self.symbolic_matrix)
+        elif self.is_numeric() and not self.is_symbolic():
+            return self._LU_decomposition()
         else:
-            return self.LU_decomposition()
+            return self._Bareiss_algorithm()
